@@ -1,0 +1,1 @@
+rabbit-slide new --id $1 --base-name $1 --markup-language rd --name "Naoya Murakami" --email naoya@createfield.com --rubygems-user naoa --tags rabbit --slideshare-user=naoa_y --speaker-deck-user=naoa_y --allotted-time=5m

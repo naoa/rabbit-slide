@@ -1,0 +1,119 @@
+= Rroongaの全文検索性能
+# : subtitle
+#    Ruby初心者がRroongaの全文検索の性能を試してみる
+: author
+   Naoya(@naoa_y)
+# : institution
+#    所属
+ : content-source
+    61st Ruby/Rails勉強会@関西 LT
+ : date
+    2014/05/31
+: allotted-time
+   5m
+: theme
+  lightning-clear-blue
+
+= 自己紹介
+
+  * Naoya (@naoa_y)
+    * 大学は情報系
+    * 新卒で3年半ほど金融系のユーザSIでインフラSE
+    * 現在は3年半ほどITと無縁の仕事
+    * Ruby歴は実働数日ほど
+
+= 国産の全文検索エンジンGroongaって知ってますか？
+= Groongaって？
+  * C言語で書かれた高速な全文検索ライブラリ/サーバ
+    * MySQLのストレージエンジンとして実装されたMroonga
+    * Rubyらしい記法でRubyから全文検索できるRroonga
+
+= 個人でMroongaでそこそこ大規模な全文検索Webサービスを作りました。
+= Groongaは少ないハードウェア資産でもかなり高速な全文検索ができる！
+= デスクトップ向けの全文検索アプリをRubyで作りたい！
+
+= Rroongaって？
+  * Rroongaのほかにサーバがなくともローカルのみで高速な全文検索機能が実現可能
+  * アプリに組み込みやすい。イメージとしてはSQLiteみたいなもの
+
+= Rroongaの利用例
+  * るりまサーチ
+    * Rubyのリファレンスマニュアルを検索できるWebアプリ 
+      http://docs.ruby-lang.org/ja/search/
+  * Milkode
+    * ソースコード検索エンジン、検索アプリ http://milkode.ongaeshi.me/ (るびま0045号に記事掲載)
+
+= 実際のところRroongaってどのくらい速いの？
+= Rubyだし言うほどじゃ・・・？
+= 試してみよう！
+
+= 検証環境
+  * MacBook Air
+    * CPU 1.4GHzデュアルコアIntel Core i5
+    * Memory 4GB
+    * SSD 128GB
+
+= 検証方法
+  * 日本語Wikipediaのカテゴリ上位100件を検索
+  * カテゴリ上位100件で日本語Wikipediaのタイトルと本文を全文検索
+  * 検証プログラム http://github.com/naoa/rroonga-wikipedia-bench
+
+= 検証1
+  # RT
+  caption = 日本語Wikipedia 1万件 XML 168MB
+
+  , SQLite3, Rroonga
+
+  カテゴリ, 2314 msec, 47 msec
+  本文, 103 msec,  6 msec
+
+= 検証2
+  # RT
+  caption = 日本語Wikipedia 5万件 XML 512MB
+
+  , SQLite3, Rroonga
+
+  カテゴリ, 9339 msec, 88 msec
+  本文, 341 msec,  30 msec
+
+= 検証3
+  # RT
+  caption = 日本語Wikipedia 183万件(全件) XML 17GB
+
+  , Rroonga
+
+  カテゴリ, 1601 msec
+  本文, 56 msec
+
+= 検証4
+  # RT
+  caption = 日本語Wikipedia 366万件(全件*2) XML 33GB
+
+  , Rroonga
+
+  カテゴリ, 3087 msec
+  本文, 113 msec
+
+= 検証5
+ * ...
+
+= MacBook Airのディスクが逼迫したのでここまで！
+
+= Mroongaでの経験則から言うとこの数倍ぐらいなら高速に全文検索できると思います。(日本語でBigramの場合。)
+
+= Mroongaを使った全文検索のWebサービスでは、最大で400GB超、1000万レコード超でもサーバ1台でそこそこ高速に検索できています。
+
+= Rroongaでは、高速な全文検索のほかに位置情報検索機能もあります。
+= 先日、HerokuでRroongaが使えるビルドパックがリリースされています。
+= Rroongaを使ってみたくなりましたよね？
+
+= おわりに
+ * 2014/6/27(金)19:00から神戸でGroongaに関する勉強会をします。
+ * Groongaに興味が沸いた方は是非参加してください！
+
+= おわりに
+ * Rroonga,Rabbit等の作者、Ruby/Groongaコミッタの須藤さん(@ktou)が東京から来てくれます！
+ * 2014/6/28(土)に大阪でGroongaに関するイベントができればと考えています。
+ * 会場提供等に協力していだける方がいたら嬉しいです。
+ 
+= ありがとうございました
