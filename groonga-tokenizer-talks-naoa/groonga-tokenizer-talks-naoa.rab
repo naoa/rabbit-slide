@@ -1,0 +1,480 @@
+= Groongaの可変型Ngramトークナイザー\nについて
+
+: author
+   Naoya Murakami
+: institution
+: content-source
+   Groonga "Tokenizer" Talks
+: date
+   2015/3/20
+: allotted-time
+   55m
+: theme
+   clear-blue
+
+= (('tag:small:自己紹介'))
+
+  # image
+  # src = icon.jpg
+  # relative-height = 25
+  # align = right
+  # relative-margin-top = -32
+  # relative-margin-right = -10
+
+ * Naoya Murakami
+ * (('tag:small:1月から知財のWeb系のスタートアップに転職'))
+   * (('tag:x-small:東京に引っ越しました!'))
+   * (('tag:x-small:その前は数年ほど関西の特許事務所勤務'))
+   * (('tag:x-small:仕事でプログラミングするのは初めて'))
+   (('note: twitter: @naoa_y'))\n
+   (('note: blog: http://blog.createfield.com'))
+
+= (('tag:x-large:Groongaのおかげで転職ができました'))
+
+= 　
+  # image
+  # src = ipnexus_logo.png
+  # relative-height = 16
+  # align = right
+  # relative-margin-top = -37
+  # relative-margin-right = 10
+
+ * (('tag:small:グローバルな知的財産権の流通市場プラットフォーム'))  (('note:https://www.ipnexus.com'))
+ * (('tag:small:IPの専門家と顧客とを繋げるサービス'))
+ * (('tag:small:個人発明家やスタートアップでも知財を有効活用できるように'))
+ * (('tag:small:まだ事業を立ち上げている段階'))
+
+= (('tag:small:最近やっていること'))
+
+ * (('tag:small:Railsとかその辺が多い'))\n(('note:仕事ではまだGroongaを使っていない'))
+   * (('tag:small:圧倒的に人材不足'))
+   * (('tag:small:事業内容や開発に興味がある方は気軽に声をかけてください'))
+ * (('tag:small:個人的には検索技術やデータマイニングとかに興味がある'))
+
+= (('tag:small:個人でやっていたこと'))
+
+  # image
+  # src = patentfield.svg
+  # relative-height = 15
+  # align = right
+  # relative-margin-top = -30
+  # relative-margin-right = -23
+
+ * (('tag:small:特許の全文検索サービス'))\n(('note:http://patentfield.com'))
+ * (('tag:x-small:特許検索では内容を絞り込むための分類体系がたくさんある')) (('note:IPC, FI, FTERM, UC, CPC ...'))
+ * (('tag:x-small:特許文献では固有名詞はほとんど使われずあまり特徴的なワードを取ることはできない'))\n (('note:パソコン⇒情報処理装置, バイオリン⇒弦楽器 etc'))
+ * (('tag:x-small:検索してすぐにそれっぽいものが見つかるよりも検索漏れ防止のが重要'))\n(('tag:x-small:⇒Ngramのトークナイザーが使いたい'))
+
+= (('tag:small:個人でやっていたこと'))
+
+  * (('tag:small:一番大きな((*日本語*))のデータベースで'))
+    * (('tag:small:数百GiB超(カラム非圧縮時)'))
+    * (('tag:small:一千万レコード超'))
+  * (('tag:small:Ngramトークナイザーは検索漏れに強いが '))(('note:一般的に'))(('tag:small:((*速度DOWN*))  サイズUP'))\n(('tag:small:⇒Ngramのトークナイザーを高速化'))
+
+= (('tag:small:改良型Ngramトークナイザー'))
+ * YaNgram - Yet another Ngram tokenizer plugin\n
+   (('note:https://github.com/naoa/groonga-tokenizer-yangram'))
+ * (('tag:small:検索時のオーバラップスキップ'))
+ * (('tag:small:静的な頻度情報に応じた可変Ngram(Vgram)'))
+ * (('tag:small:既知フレーズのグループ化'))
+
+= (('tag:small:Groongaの全文検索の流れ'))
+
+  # image
+  # src = search.png
+  # relative-height = 100
+  # align = center
+  # relative-margin-top = 0
+  # relative-margin-right = 0
+
+= (('tag:small:キー探索'))
+
+  # image
+  # src = search_key.png
+  # relative-height = 100
+  # align = center
+  # relative-margin-top = 0
+  # relative-margin-right = 0
+
+= (('tag:small:キー探索'))
+ * (('tag:small:ハッシュ表やパトリシアトライなどを使って語彙表のキーとして登録されたトークンを探す'))
+ * (('tag:small:いわゆる辞書引き・KVS'))
+ * (('tag:small:Groongaではインデックス≠キー'))
+ * (('tag:small:キー探索は非常に速くμsecオーダー'))
+
+= (('tag:small:キーの種類数が増える要因'))
+   * (('tag:small:文字の種類数が多いこと'))\n(('note:組み合わせが増えるためキーの種類数は多くなる'))
+     * (('tag:x-small:日本語の文字の種類は多い'))\n(('note:ひらがなカタカナ50種 漢字いっぱい'))
+     * (('tag:x-small:英語の文字の種類は非常に少ない'))\n(('note:アルファベット26種'))
+   * (('tag:small:文字数が多いこと'))\n(('note:組み合わせが増えるためキーの種類数は多くなる'))
+     * (('tag:x-small:NgramはNが大きいほどキーの種類数が多い'))
+
+= (('tag:small:キーの種類数増によるキー探索速度への影響'))
+ # RT
+ caption = パトリシアトライ(ADD後⇒GET)
+
+ (('tag:x-small:キー種類数')), (('tag:x-small:キー1件取得秒数'))
+
+ (('tag:x-small:1万')), (('tag:x-small:21 μsec'))
+ (('tag:x-small:1千万')), (('tag:x-small:37 μsec'))
+
+
+= (('tag:small:キーの種類数増によるキー探索速度への影響'))
+ * (('tag:small:キー探索はキーの種類が増えても線形的に時間が増えない')) \n(('note:例：ハッシュ表O(1)、パトリシアトライO(k)'))
+ * (('tag:small:キー種類増による検索速度への影響は非常に軽微'))
+
+= (('tag:small:ポスティング探索'))
+
+  # image
+  # src = search_post.png
+  # relative-height = 100
+  # align = center
+  # relative-margin-top = 0
+  # relative-margin-right = 0
+
+= (('tag:small:ポスティング探索'))
+ * (('tag:small:キー探索によって取得したポスティングリスト中のトークンの出現位置と検索クエリのトークンの出現位置の並びが一致するかどうかを比較'))
+ * (('tag:small:トークンの出現頻度が増えるとポスティングリストが長くなる'))
+   * 一番時間がかかるところ\n(('note:シーケンシャルサーチを除く'))
+
+= (('tag:small:トークンの出現頻度が増える要因'))
+ * (('tag:small:キーの種類数が少ないほどトークン1個あたりの出現頻度は大きくなる'))
+   * (('tag:x-small:Unigramや英語の文章をBigramでトークナイズするとトークン1個あたりの出現頻度は非常に大きい'))
+ * (('tag:small:「((*の、が、は*))」などの助詞は１文書中にたくさん出現する'))
+
+= (('tag:small:頻出トークンのポスティング探索速度への影響'))
+ * (('tag:small:トークンの出現頻度に応じてほぼ線形的に検索時間が伸びる'))
+   * (('tag:small:大抵の場合、ポスティングリストの探索でCPUがボトルネック'))
+ * (('tag:small:文書数/サイズに応じて頻出トークンのポスティングリストが長くなる'))
+   * (('tag:small:クエリ間の検索速度の差が広がる'))
+
+= (('tag:small:Bigramトークナイザーの検索速度例'))
+
+  # image
+  # src = bigram_hindo.png
+  # relative-height = 100
+  # align = center
+  # relative-margin-top = 0
+  # relative-margin-right = 0
+
+= (('tag:small:検索速度を高速に保つために重要なこと'))
+ * (('tag:small:キーの種類数よりもポスティングリストが長くなりすぎないようにする'))
+ * (('note:CPUクロック数を上げる'))
+ * (('note:なお、最新のGroongaでは頻出トークンとレアトークンの組み合わせ時に一部の探索をスキップする高速化処理が組み込まれているが、このスライドの実験結果には反映されていない'))\n(('note:http://sourceforge.jp/projects/groonga/lists/archive/dev/2015-February/003097.html'))
+
+= (('tag:small:Groongaのトークナイザー'))
+
+  # image
+  # src = search_tk.png
+  # relative-height = 100
+  # align = center
+  # relative-margin-top = 0
+  # relative-margin-right = 0
+
+= (('tag:small:Ngramトークナイザー'))
+  * (('tag:small:所定の長さのユニットサイズで1文字ずつずらす')) \n(('tag:small:1:Unigram 2:Bigram 3:Trigram'))
+  * (('tag:x-small:「今日は雨だ」'))⇒(('tag:x-small:「今日/日は/は雨/雨だ/((*だ*))」'))
+  * (('tag:small:Groongaでは1文字でも検索できるように末尾1文字も含まれる'))\n(('note:検索時は末尾1文字は含まれない'))
+
+= (('tag:small:Ngramトークナイザー'))
+  * (('tag:small:デフォルトではアルファベット、記号、数字はグループ化')) 
+    * (('tag:x-small:検索ノイズ低減、検索速度向上のため')) 
+  * (('tag:small:アルファベット、記号、数字もNgramにしたいのであれば、TokenBigramSplit系を使う')) 
+
+= (('tag:small:Ngramトークナイザーのメリット'))
+  * (('note:原則')) 漏れのない検索が可能
+  * 辞書のメンテナンスコスト不要
+
+= (('tag:small:Ngramトークナイザーのデメリット'))
+  * (('tag:small:1文字ずつずらすためトークンの総数が多くなり転置索引のサイズが大きくなる'))\n(('note:転置索引のサイズはほぼトークンの総数によって決まる'))
+  * (('tag:small:検索ノイズが含まれることがある')) \n(('note:例：東京都に対して京都でヒットする'))
+  * (('tag:small:トークンの比較回数が多く形態素解析よりも検索速度が遅くなることがある'))
+
+= (('tag:small:形態素解析トークナイザー'))
+  * (('tag:small:形態素解析器を使って文脈に応じて単語単位に分かち書き TokenMecab'))
+  * (('tag:small:分割ルールは学習モデルと辞書による')) (('note:Unidicであれば短く分かち書き'))
+  * (('tag:x-small:例：「今日は雨だ」'))(('tag:x-small:⇒「今日/は/雨/だ」'))
+
+= (('tag:small:形態素解析トークナイザーのメリット'))
+  * (('tag:small:検索ノイズの低減'))\n(('note:例：東京都に対して京都がヒットしない'))
+  * (('tag:small:単語ごとにずらせるため転置索引のサイズがコンパクト'))\n(('note:形態素解析の場合「転置索引」⇒「転置索引」1つ'))\n(('note:Bigramの場合「転置索引」⇒「転置/置索/索引/引」4つ'))
+  * (('tag:small:おおむね検索が高速'))\n(('note:基本的に比較するトークンの数がNgramよりも少ない'))
+
+= (('tag:small:形態素解析トークナイザーのデメリット'))
+  * (('tag:x-small:検索漏れ有'))
+  * (('tag:x-small:辞書の追加やモデルの再学習などメンテナンスコスト大'))
+  * (('tag:x-small:検索クエリと文章中では文脈が異なり分割ルールが異なることがまれによくある'))\n(('note:チューニングが大変。検索クエリでは左の文脈がない'))
+  * (('tag:x-small:クエリによって検索速度にムラがでやすい'))\n(('note:形態素解析では1文字トークンもあり出現頻度の最大値がNgramよりもかなり大きくなりやすい'))\n(('note:⇒ストップワードが重要'))
+
+= (('tag:small:Bigramトークナイザーの出現頻度例'))
+
+  # image
+  # src = bigram_hindo.png
+  # relative-height = 100
+  # align = center
+  # relative-margin-top = 0
+  # relative-margin-right = 0
+
+= (('tag:small:形態素解析トークナイザーの出現頻度例'))
+
+  # image
+  # src = keitai_hindo.png
+  # relative-height = 100
+  # align = center
+  # relative-margin-top = 0
+  # relative-margin-right = 0
+
+= (('tag:small:Ngramトークナイザーの高速化1'))\n(('tag:small:検索時のオーバーラップスキップ'))
+  * (('tag:small:Ngramの文書追加時は1文字ずらしですべてのポジションのキーを登録'))
+  * (('tag:small:検索時も1文字ずらしでキー探索、ポスティングリスト比較'))
+  * (('tag:x-small:例：「今日は雨だ」'))⇒(('tag:x-small:「今日/日は/は雨/雨だ」'))
+  * (('tag:small:トークンの比較回数が多い'))
+    * (('tag:small:検索速度が((*劣化*))'))
+
+= (('tag:small:Ngramトークナイザーの高速化1'))\n(('tag:small:検索時のオーバーラップスキップ'))
+  * (('tag:small:Ngramの文書追加時は1文字ずらしですべてのポジションのキーを登録'))
+  * (('tag:small:検索時も1文字ずらしでキー探索、ポスティングリスト比較'))
+  * (('tag:x-small:例：「今日は雨だ」'))⇒(('tag:x-small:「今日/日は/は雨/雨だ」'))
+  * (('tag:small:トークンの比較回数が多い'))
+    * (('tag:small:検索速度が((*劣化*))'))
+
+= (('tag:small:Ngramトークナイザーの高速化1'))\n(('tag:small:検索時のオーバーラップスキップ'))
+  * (('tag:small:検索時は開始位置が決まっているので1文字ずらしする必要はない'))
+    * (('tag:small:原則:オーバラップ部分をスキップ'))
+    (('tag:x-small:従来:「今日は雨」⇒「今日/日は/は雨」'))
+    \n(('tag:x-small:改良:「今日は雨」⇒「今日/　　/は雨」'))
+  * (('tag:small:トークンの比較回数が3回から2回に減る'))
+    * (('tag:x-small:((*高速化*))'))
+
+= (('tag:small:Ngramトークナイザーの高速化1'))\n(('tag:small:検索時のオーバーラップスキップ'))
+   * (('tag:small:例外:末尾や字種境界で短くなるところは1つ手前の長い方を採用する'))
+     * (('tag:x-small:短いやつはポスティングリストが長く検索が遅い'))
+     (('tag:x-small:「今日は雨だ」⇒「今日/　　/は雨/　　/だ」 ((*×*))'))
+     \n(('tag:x-small:「今日は雨だ」⇒「今日/　　/は雨/雨だ」 ((*○*))'))
+
+
+= (('tag:small:Ngramトークナイザーの高速化1'))\n(('tag:small:検索時のオーバーラップスキップ'))
+  * (('tag:x-small:これを追加実装したのが以下のトークナイザー'))
+    * TokenYaBigram
+    * TokenYaTrigram
+
+= (('tag:small:TokenBigram/TokenYaBigram'))\n(('tag:small:の速度比較'))
+ # RT
+ caption = Wikipedia(ja)で1000回検索
+
+ (('tag:x-small:トークナイザー')), (('tag:x-small:検索秒数平均'))
+
+ (('tag:x-small:TokenBigram')), (('tag:x-small:0.0508 sec'))
+ (('tag:x-small:((*TokenYaBigram*))')), (('tag:x-small:((*0.0325 sec*))'))
+
+
+(('tag:x-small:※5文字以上の日本語のみのカテゴリ'))
+
+= (('tag:small:TokenTrigram/TokenYaTrigram'))\n(('tag:small:の速度比較'))
+ # RT
+ caption = Wikipedia(ja)で1000回検索
+
+ (('tag:x-small:トークナイザー')), (('tag:x-small:検索秒数平均'))
+
+ (('tag:x-small:TokenTrigram')), (('tag:x-small:0.0146 sec'))
+ (('tag:x-small:((*TokenYaTrigram*))')), (('tag:x-small:((*0.0063 sec*))'))
+
+= (('tag:small:TokenYaBigram/TokenYaTrigram'))\n(('tag:small:の速度比較'))
+  * (('tag:small:YaBigramはBigramに比べ1.5倍ほど速い'))
+  * (('tag:small:YaTrigramはTrigramに比べ2倍ほど速い'))
+    * (('tag:x-small:オーバーラップ部分を飛ばせる量が増える'))
+    (('tag:xx-small:Bigram「今日は雨だな」⇒「今日/  /は雨/  /だな」((*3*))'))
+    \n(('tag:xx-small:Trigram「今日は雨だな」⇒「今日は/    /    /雨だな」((*2*))'))
+
+= (('tag:small:Ngramトークナイザーの高速化2'))\n(('tag:small:静的な頻度情報に応じた可変Ngram(Vgram)'))
+  * (('tag:small:原則、Nのサイズが大きくほどトークンの種類が増えてトークン１つあたりのポスティングリストは短くなる'))
+  * (('tag:small:BigramをTrigramにすれば3文字以上の検索で((*速くなる*))'))
+    * (('note:2文字以下で検索する場合は速くはならない'))
+
+= (('tag:small:Bigramトークナイザーの検索速度例'))
+
+  # image
+  # src = bigram_hindo.png
+  # relative-height = 100
+  # align = center
+  # relative-margin-top = 0
+  # relative-margin-right = 0
+
+= (('tag:small:Trigramトークナイザーの検索速度例'))
+
+  # image
+  # src = trigram_hindo.png
+  # relative-height = 100
+  # align = center
+  # relative-margin-top = 0
+  # relative-margin-right = 0
+
+= (('tag:small:TokenTrigramのデメリット'))
+
+* (('tag:small:TokenTrigramはTokenBigramに比べキー数とキーサイズが増大'))
+* (('tag:small:メモリ使用量が増大'))
+  * (('tag:small:キーサイズは小さいほうが望ましい'))
+
+= (('tag:small:TokenBigram/TokenTrigramのキー'))
+ # RT
+ caption = Wikipedia(ja)
+
+ (('tag:x-small:トークナイザー')), (('tag:x-small:キーの数')), (('tag:x-small:キーサイズ'))
+
+ (('tag:x-small:TokenBigram')), (('tag:x-small:5767474')), (('tag:x-small:136.047MiB'))
+ (('tag:x-small:TokenTrigram')), (('tag:x-small:28691883')), (('tag:x-small:684.047MiB'))
+
+= (('tag:small:Bigramトークナイザーの出現頻度例'))
+
+  # image
+  # src = bigram_hindo.png
+  # relative-height = 100
+  # align = center
+  # relative-margin-top = 0
+  # relative-margin-right = 0
+
+= (('tag:small:Ngramトークナイザーの高速化2'))\n(('tag:small:静的な頻度情報に応じた可変Ngram(Vgram)'))
+
+* (('tag:small:トークンの出現頻度はNgramといえ大きく偏っている'))
+* (('tag:small:大半のトークンは出現頻度が高くなく十分な検索速度が得られている'))
+* (('tag:small:Bigramでの((*出現頻度が高いトークンだけ*))をTrigramにすれば良い'))
+
+= (('tag:small:Ngramトークナイザーの高速化2'))\n(('tag:small:静的な頻度情報に応じた可変Ngram(Vgram)'))
+  * (('tag:x-small:これを追加実装したのが以下のトークナイザー'))
+    * TokenYaVgram
+    * TokenYaVgramBoth
+    * TokenYaVgramQuad
+
+= (('tag:small:TokenYaVgram'))
+
+* (('tag:x-small:(*原則*):管理テーブルのキーと一致するBigramトークンのみを後ろに伸ばしてTrigramにする'))
+* (('tag:x-small:「処理」を登録'))\n(('tag:x-small:「画像処理装置」をトークナイズ'))
+  * (('tag:x-small:「画像/像処/((*処理装*))/理装/装置/置」'))
+* (('tag:x-small:「処理装」が出現する頻度は「処理」よりも低い'))
+  * (('tag:x-small:((*高速化*))'))
+* (('tag:x-small:検索時は上記と同様にオーバラップを飛ばす'))
+
+= (('tag:small:TokenYaVgram'))
+
+* (('tag:x-small:管理テーブルに出現頻度の高いBigramトークンのみを登録しておく'))
+  * (('tag:xx-small:あらかじめ、ある程度の文章量が必要'))
+  * (('tag:xx-small:同分野であれば頻出トークンの傾向はほぼ同じ'))
+  * (('tag:xx-small:通常のBigramトークナイザーでインデックスを構築しAPIを使えばBigramの出現頻度を取得できる'))
+  * (('note: Rroonga: https://gist.github.com/naoa/fac2cff05fa9113bf5d6'))\n
+  * (('note: C-API: https://gist.github.com/naoa/8d862028e23e45e23304'))\n
+
+= (('tag:small:TokenYaVgram'))
+
+* (('tag:x-small:(*例外*):検索クエリの末尾ではTrigram対象のBigramトークンであっても後ろに伸ばせない'))
+  * (('tag:x-small:本文中では伸ばされている可能性がある'))
+  * (('tag:x-small:この場合は強制的に前方一致検索させる'))
+  * (('tag:x-small:vgram対象でも2文字で検索が可能'))\n(('note:ただしTokenBigramのときより速くはならない'))
+* (('tag:xx-small:「処理」を登録'))\n(('tag:xx-small:文書登録:「画像処理装置」　検索クエリ:「画像処理」'))
+  * (('tag:xx-small:文書登録:「画像/像処/((*処理装*))/理装/装置/置」'))
+  * (('tag:xx-small:検索クエリ:「画像/  /処理*」'))
+
+= (('tag:small:TokenYaVgraの速度'))
+ # RT
+ caption = Wikipedia(ja)で1000回検索
+
+ (('tag:x-small:トークナイザー')), (('tag:x-small:検索秒数平均'))
+
+ (('tag:x-small:TokenBigram')), (('tag:x-small:0.0444 sec'))
+ (('tag:x-small:TokenYaBigram')), (('tag:x-small:0.0325 sec'))
+ (('tag:x-small:TokenYaTrigram')), (('tag:x-small:0.0063 sec'))
+ (('tag:x-small:((*TokenYaVgram*))')), (('tag:x-small:((*0.0166 sec*))'))
+
+= (('tag:small:TokenYaVgramのキー'))
+ # RT
+ caption = Wikipedia(ja)
+
+ (('tag:x-small:トークナイザー')), (('tag:x-small:キーの数')), (('tag:x-small:キーサイズ'))
+
+ (('tag:x-small:TokenBigram')), (('tag:x-small:5767474')), (('tag:x-small:136.047MiB'))
+ (('tag:x-small:TokenTrigram')), (('tag:x-small:28691883')), (('tag:x-small:684.047MiB'))
+ (('tag:x-small:((*TokenYaVgram*))')), (('tag:x-small:((*7425198*))')), (('tag:x-small:((*172.047MiB*))'))
+
+= (('tag:small:TokenYaVgramの効果'))
+
+* (('tag:small:キーサイズの増大を抑えつつ、検索の高速化を実現'))
+* (('tag:small:TokenYaTrigramほど速くはならなかった'))
+  * (('tag:x-small:検索クエリ末尾がVgram対象の場合、2文字トークンで前方一致探索する必要がある'))
+
+= (('tag:small:TokenYaVgramBoth'))
+
+* (('tag:x-small:((*原則*)):管理テーブルのキーと一致するBigramトークンのみを後ろに伸ばしてTrigramにする'))
+* (('tag:x-small:((*さらに*)):1つ後ろのBigramトークンが管理テーブルのキーと一致するトークンも後ろに伸ばしてTrigramにする'))
+* (('tag:xx-small:「処理」を登録'))\n(('tag:xx-small:文書登録:「画像処理装置」　検索クエリ:「画像処理」'))
+  * (('tag:xx-small:文書登録:「画像/((*像処理*))/((*処理装*))/理装/装置/置」'))
+  * (('tag:xx-small:検索クエリ:「画像/像処理」'))
+  * (('tag:xx-small:「処理」じゃなく「像処理」で探索できる⇒((*高速化*))'))
+
+= (('tag:small:TokenYaVgramBoth'))
+
+* (('tag:x-small:((*例外*)):検索クエリの末尾では次のトークンがないため判断できない'))
+* (('tag:x-small:全ての場合で検索クエリ末尾のトークンは強制的に前方一致検索させる'))(('note:せざるを得ない'))
+  * (('tag:x-small:前方一致が必要のないケースで前方一致をしたとしてもあまり影響はない'))\n(('note:vgram対象でないやつはもとより遅くないという想定'))
+* (('tag:xx-small:「理装」を登録'))\n(('tag:xx-small:文書登録:「画像処理装置」　検索クエリ:「画像処理」'))
+  * (('tag:xx-small:文書登録:「画像/像処/((*処理装*))/((*理装置*))/装置/置」'))
+  * (('tag:xx-small:検索クエリ:「画像/  /処理*」'))
+
+= (('tag:small:TokenYaVgramBotの速度'))
+
+ # RT
+ caption = Wikipedia(ja)で1000回検索
+
+ (('tag:x-small:トークナイザー')), (('tag:x-small:検索秒数平均'))
+
+ (('tag:x-small:TokenBigram')), (('tag:x-small:0.0444 sec'))
+ (('tag:x-small:TokenYaBigram')), (('tag:x-small:0.0325 sec'))
+ (('tag:x-small:TokenYaTrigram')), (('tag:x-small:0.0063 sec'))
+ (('tag:x-small:TokenYaVgram')), (('tag:x-small:0.0166 sec'))
+ (('tag:x-small:((*TokenYaVgramBoth*))')), (('tag:x-small:((*0.0065 sec*))'))
+
+= (('tag:small:TokenYaVgramBothのキー'))
+ # RT
+ caption = Wikipedia(ja)
+
+ (('tag:x-small:トークナイザー')), (('tag:x-small:キーの数')), (('tag:x-small:キーサイズ'))
+
+ (('tag:x-small:TokenBigram')), (('tag:x-small:5767474')), (('tag:x-small:136.047MiB'))
+ (('tag:x-small:TokenTrigram')), (('tag:x-small:28691883')), (('tag:x-small:684.047MiB'))
+ (('tag:x-small:TokenYaVgram')), (('tag:x-small:7425198')), (('tag:x-small:172.047MiB'))
+ (('tag:x-small:((*TokenYaVgramBoth*))')), (('tag:x-small:((*8560779*))')), (('tag:x-small:((*200.047MiB*))'))
+
+= (('tag:small:TokenYaVgramBothの効果'))
+* (('tag:small:出現頻度が高いもののみTrigramにすることでキーサイズの増大を抑えつつ、検索速度の高速化を実現'))
+* (('tag:small:TokenYaTrigram並の検索速度ながらもキーサイズをTokenTrigramの1/3以下に抑えられた'))
+
+= (('tag:small:TokenYaVgramQuad'))
+
+* (('tag:small:3文字にしてもまだ速度が満足いかなかったケースがあったのでつくってみた'))
+* (('tag:small:管理テーブルに3文字のキーを登録しておくと、その対象のみを4文字トークンにする'))
+* (('tag:small:現在はこのトークナイザーを適用中'))
+
+= (('tag:small:既知フレーズのグループ化'))
+* (('tag:x-small:あらかじめ既知のフレーズを管理テーブルに登録しておき、そのフレーズのみをグループ化してトークナイズ'))
+  * (('tag:x-small:パトリシアトライのLCPサーチを利用して高速にフレーズ抽出'))
+  * (('tag:x-small:「１２月は寒い」で「１２月」を登録'))
+  * (('tag:x-small:「１２月／は寒／寒い」'))
+
+= (('tag:small:既知フレーズのグループ化の効果'))
+* (('tag:small:検索ノイズの低減'))
+* (('tag:small:見出しタグや頻出語を含む複合語を登録することにより頻出トークン数低減'))
+  * (('tag:small:((*高速化*))'))
+
+= (('tag:small:まとめ'))
+* (('tag:x-small:検索速度を高速に保つのためにはポスティングリストが長くなりすぎないようにする'))
+* (('tag:x-small:Ngram検索時はオーバラップさせなくても良い'))
+* (('tag:x-small:Ngramといえどトークンの出現頻度は偏る'))
+* (('tag:x-small:検索速度に影響のある頻出トークンのみを選択的に伸ばすVgramトークナイザーを作った'))
+
+= (('tag:small:今後の課題'))
+* (('tag:x-small:Vgramは検索クエリが3文字以上のときは高速化できるが2文字以下の場合の高速化にはならない'))\n(('note:前方一致検索しないといけないのでむしろ少し遅くなる'))
+* (('tag:x-small:前処理でいらないフレーズ除去、一部フレーズ化やストップワードという対応方法もあるがどれも制約が発生'))
+* (('tag:x-small:1文字、2文字があまり遅くならないように特化したインデックスを別につくり検索クエリに応じてそちらのインデックスを使うようにできないかと検討中'))
+* (('tag:x-small:形態素解析をスコアリングに特化した形でVgramとハイブリッドで使えないか検討中'))
+
+= TokenBigramとTokenYaVgramQuadの速度差デモ\n(時間があれば)
+
