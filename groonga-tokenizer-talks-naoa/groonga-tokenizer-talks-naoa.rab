@@ -348,7 +348,7 @@
 
 = (('tag:small:TokenYaVgram'))
 
-* (('tag:x-small:(*原則*):管理テーブルのキーと一致するBigramトークンのみを後ろに伸ばしてTrigramにする'))
+* (('tag:x-small:((*原則*)):管理テーブルのキーと一致するBigramトークンのみを後ろに伸ばしてTrigramにする'))
 * (('tag:x-small:「処理」を登録'))\n(('tag:x-small:「画像処理装置」をトークナイズ'))
   * (('tag:x-small:「画像/像処/((*処理装*))/理装/装置/置」'))
 * (('tag:x-small:「処理装」が出現する頻度は「処理」よりも低い'))
@@ -366,7 +366,7 @@
 
 = (('tag:small:TokenYaVgram'))
 
-* (('tag:x-small:(*例外*):検索クエリの末尾ではTrigram対象のBigramトークンであっても後ろに伸ばせない'))
+* (('tag:x-small:((*例外*)):検索クエリの末尾ではTrigram対象のBigramトークンであっても後ろに伸ばせない'))
   * (('tag:x-small:本文中では伸ばされている可能性がある'))
   * (('tag:x-small:この場合は強制的に前方一致検索させる'))
   * (('tag:x-small:vgram対象でも2文字で検索が可能'))\n(('note:ただしTokenBigramのときより速くはならない'))
